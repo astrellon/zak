@@ -54,6 +54,16 @@ public class TileLayer : MonoBehaviour {
         }
     }
 
+    void OnGUI()
+    {
+        if (Application.isPlaying)
+        {
+            //return;
+        }
+
+        GUI.Button(new Rect(10, 10, 100, 40), "Hi");
+    }
+
 	// Update is called once per frame
 	void Update () {
         if (!Application.isPlaying)
