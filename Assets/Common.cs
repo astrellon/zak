@@ -19,7 +19,6 @@ public struct Vector2Int
 [System.Serializable]
 public class TileInstance
 {
-    public Vector2Int Position = Vector2Int.Zero;
     public int Frame;
     public bool Animated;
 }
