@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,14 +8,38 @@ public struct TilePosition
 {
     public Vector2Int Position;
     public TileInstance Instance;
+
+    public static TilePosition Empty = new TilePosition { Position = Vector2Int.Zero, Instance = null };
+
+    public static bool operator == (TilePosition lhs, TilePosition rhs)
+    {
+        return lhs.Position == rhs.Position && lhs.Instance == rhs.Instance;
+    }
+    public static bool operator != (TilePosition lhs, TilePosition rhs)
+    {
+        return lhs.Position != rhs.Position || lhs.Instance != rhs.Instance;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (!(obj is TilePosition))
+        {
+            return false;
+        }
+
+        var pos = (TilePosition)obj;
+        return this == pos;
+    }
+    public bool IsEmpty
+    {
+        get { return Position == Vector2Int.Zero && Instance == null; }
+    }
 }
 
-
 [ExecuteInEditMode]
-public class TileLayer : MonoBehaviour {
+public class TileLayer : MonoBehaviour
+{
 
-    //public Dictionary<Vector2Int, TileInstance> Tiles = new Dictionary<Vector2Int, TileInstance>();
-    //public Dictionary<Vector2Int, TileInstance> Transitions = new Dictionary<Vector2Int, TileInstance>();
     public List<TilePosition> Tiles = new List<TilePosition>();
     public List<TilePosition> Transitions = new List<TilePosition>();
     public Texture2D TileSet;
@@ -65,48 +88,35 @@ public class TileLayer : MonoBehaviour {
 
     public void AddTile(Vector2Int position, int frame)
     {
-        foreach (var kvp in Tiles)
+        var findTile = GetTile(position);
+        if (findTile != TilePosition.Empty)
         {
-            if (kvp.Position.Equals(position))
-            {
-                return;
-            }
+
         }
-        Tiles.Add(new TilePosition {Position = position,
+        Tiles.Add(new TilePosition
+        {
+            Position = position,
             Instance = new TileInstance
-        {
-            Frame = frame
-        }});
-    }
-
-    void OnGUI()
-    {
-        if (Application.isPlaying)
-        {
-            //return;
-        }
-
-        GUI.Button(new Rect(10, 10, 100, 40), "Hi");
-    }
-
-    void OnSceneGUI()
-    {
-        if (Event.current.type == EventType.MouseDown)
-        {
-            Debug.Log("Mouse down");
-            Ray ray = Camera.current.ScreenPointToRay(Event.current.mousePosition);
-            RaycastHit hit = new RaycastHit();
-            if (Physics.Raycast(ray, out hit, 1000.0f))
             {
-                Debug.Log(Event.current.mousePosition);
-                //Vector3 newTilePosition = hit.point;
-                //Instantiate(newTile, newTilePosition, Quaternion.identity);
+                Frame = frame
+            }
+        });
+    }
+
+    private TilePosition GetTile(Vector2Int position)
+    {
+        foreach (var tile in Tiles)
+        {
+            if (tile.Position == position)
+            {
+                return tile;
             }
         }
+        return TilePosition.Empty;
     }
 
-	// Update is called once per frame
-	void Update () {
+    // Update is called once per frame
+    void Update () {
         if (!Application.isPlaying)
         {
             CreateTiles();

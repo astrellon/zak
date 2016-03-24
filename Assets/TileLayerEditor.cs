@@ -6,12 +6,20 @@ public class LevelScriptEditor : Editor
 {
     private Vector3 cursorPosition = Vector3.zero;
     private Vector2Int tileCursorPosition = Vector2Int.Zero;
+    private Plane plane = new Plane();
+    private bool createdPlane = false;
 
     void OnSceneGUI()
     {
         var e = Event.current;
         var controlId = GUIUtility.GetControlID(FocusType.Passive);
         var layerTarget = (TileLayer)target;
+
+        if (!createdPlane)
+        {
+            plane = new Plane(Vector3.back, layerTarget.transform.position);
+            createdPlane = true;
+        }
 
         if (e.type == EventType.MouseDown)
         {
@@ -21,12 +29,10 @@ public class LevelScriptEditor : Editor
             EditorUtility.SetDirty(layerTarget);
 
             e.Use();
-            Debug.Log("Mouse down");
         }
         else if (e.type == EventType.MouseMove)
         {
             float rayDistance;
-            var plane = new Plane(Vector3.back, layerTarget.transform.position);
             var ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
             if (plane.Raycast(ray, out rayDistance))
             {
@@ -36,9 +42,8 @@ public class LevelScriptEditor : Editor
             }
         }
 
-        Handles.color = Color.red;
-        //Handles.DotCap(0, cursorPosition, Quaternion.identity, 4);
-        Handles.DotCap(0, new Vector2(tileCursorPosition.x * 32.0f, tileCursorPosition.y * 32.0f), Quaternion.identity, 4);
+        Handles.color = new Color(0.35f, 0.4f, 0.8f, 0.5f);
+        Handles.DotCap(0, new Vector2(tileCursorPosition.x * 32.0f, tileCursorPosition.y * 32.0f), Quaternion.identity, 16);
 
     }
 }

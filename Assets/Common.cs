@@ -14,6 +14,29 @@ public struct Vector2Int
         this.x = x;
         this.y = y;
     }
+
+    public static bool operator ==(Vector2Int lhs, Vector2Int rhs)
+    {
+        return lhs.x == rhs.x && lhs.y == rhs.y;
+    }
+    public static bool operator !=(Vector2Int lhs, Vector2Int rhs)
+    {
+        return lhs.x != rhs.x || lhs.y != rhs.y;
+    }
+    public bool Equals(Vector2Int obj)
+    {
+        return this == obj;
+    }
+    public override bool Equals(object obj)
+    {
+        if (!(obj is Vector2Int))
+        {
+            return false;
+        }
+
+        var vecObj = (Vector2Int)obj;
+        return this == vecObj;
+    }
 }
 
 [System.Serializable]
