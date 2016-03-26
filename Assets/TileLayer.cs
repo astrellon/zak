@@ -44,6 +44,7 @@ public class TileLayer : MonoBehaviour
     public List<TilePosition> Transitions = new List<TilePosition>();
     public Texture2D TileSet;
     public Texture2D TransitionSet;
+    public TileSet Test;
 
 	// Use this for initialization
 	void Start ()

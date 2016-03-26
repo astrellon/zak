@@ -4,21 +4,45 @@ using System.Collections.Generic;
 
 public class TileSet : MonoBehaviour {
 
-    public Texture2D CenterTiles;
-    public Texture2D LeftEdge;
+    [System.Serializable]
+    public class CommonTexture
+    {
+        public Sprite Sprite;
+        public Texture2D Texture;
 
-	// Use this for initialization
-	void Start () {
-        var sprites = Resources.LoadAll<Sprite>(CenterTiles.name);
-
-        foreach (var sp in sprites)
+        public Object Value
         {
-            Debug.Log("Sprite: " + sp.name);
+            get
+            {
+                if (Texture != null)
+                {
+                    return Texture;
+                }
+                return Sprite;
+            }
         }
     }
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+
+    public CommonTexture CenterTiles;
+
+    [System.Flags]
+    public enum EdgeFlags
+    {
+        Left =   0x01,
+        Right =  0x02,
+        Top =    0x04,
+        Bottom = 0x08
+    }
+
+    [System.Flags]
+    public enum CornerFlags
+    {
+        TopLeft = 0x01,
+        TopRight = 0x02,
+        BottomRight = 0x04,
+        BottomLeft = 0x08
+    }
+
+    public CommonTexture[] EdgeTiles = new CommonTexture[16];
+    public CommonTexture[] CornerTiles = new CommonTexture[16];
 }
