@@ -91,8 +91,29 @@ public class TileLayer : MonoBehaviour
         var findTile = GetTile(position);
         if (findTile != TilePosition.Empty)
         {
-
+            return;
         }
+
+        RemoveTransitionsAt(position);
+
+        for (var y = -1; y <= 1; y++)
+        {
+            for (var x = -1; x <= 1; x++)
+            {
+                if (x == 0 && y == 0)
+                {
+                    continue;
+                }
+
+                var checkPosition = position.Change(x, y);
+                var topEdge = GetTile(checkPosition);
+                if (topEdge == TilePosition.Empty)
+                {
+                    AddTransition(checkPosition, 1);
+                }
+            }
+        }
+
         Tiles.Add(new TilePosition
         {
             Position = position,
@@ -103,11 +124,49 @@ public class TileLayer : MonoBehaviour
         });
     }
 
+    public void AddTransition(Vector2Int position, int frame)
+    {
+        var findTransition = GetTransition(position, frame);
+        if (findTransition != TilePosition.Empty)
+        {
+            return;
+        }
+
+        Transitions.Add(new TilePosition
+        {
+            Position = position,
+            Instance = new TileInstance
+            {
+                Frame = frame
+            }
+        });
+    }
     private TilePosition GetTile(Vector2Int position)
     {
         foreach (var tile in Tiles)
         {
             if (tile.Position == position)
+            {
+                return tile;
+            }
+        }
+        return TilePosition.Empty;
+    }
+    private void RemoveTransitionsAt(Vector2Int position)
+    {
+        for (var i = Transitions.Count - 1; i >= 0; i--)
+        {
+            if (Transitions[i].Position == position)
+            {
+                Transitions.RemoveAt(i);
+            }
+        }
+    }
+    private TilePosition GetTransition(Vector2Int position, int frame)
+    {
+        foreach (var tile in Transitions)
+        {
+            if (tile.Position == position && tile.Instance.Frame == frame)
             {
                 return tile;
             }

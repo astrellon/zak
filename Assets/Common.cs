@@ -37,6 +37,11 @@ public struct Vector2Int
         var vecObj = (Vector2Int)obj;
         return this == vecObj;
     }
+
+    public Vector2Int Change(int dx, int dy)
+    {
+        return new Vector2Int(x + dx, y + dy);
+    }
 }
 
 [System.Serializable]
