@@ -41,15 +41,13 @@ public class TileLayer : MonoBehaviour
 {
 
     public List<TilePosition> Tiles = new List<TilePosition>();
-    public List<TilePosition> Transitions = new List<TilePosition>();
-    public Texture2D TileSet;
-    public Texture2D TransitionSet;
-    public TileSet Test;
+    public List<TilePosition> Edges = new List<TilePosition>();
+    public List<TilePosition> Corners = new List<TilePosition>();
+    public TileSet Set;
 
 	// Use this for initialization
 	void Start ()
     {
-        //CreateTiles();
 	}
 
     void CreateTiles()
@@ -60,21 +58,24 @@ public class TileLayer : MonoBehaviour
             DestroyImmediate(trans.gameObject);
         }
 
-        CreateTileInstances(Tiles, false);
-        CreateTileInstances(Transitions, true);
+        CreateTileInstances(Tiles);
+        CreateTransitionInstances(Edges, false);
+        CreateTransitionInstances(Corners, true);
     }
 
-    void CreateTileInstances(IEnumerable<TilePosition> instances, bool isTransition)
+    void CreateTileInstances(IEnumerable<TilePosition> instances)
     {
         foreach (var kvp in instances)
         {
             var instance = kvp.Instance;
+            var commonTexture = Set.CenterTiles;
+            if (!commonTexture.HasValue)
+            {
+                continue;
+            }
+
             var position = kvp.Position;
             var name = position.x + "_" + position.y;
-            if (isTransition)
-            {
-                name += "_trans_" + instance.Frame;
-            }
             var tileInstance = new GameObject();
             tileInstance.transform.parent = transform;
             tileInstance.transform.localPosition = new Vector3(position.x * 32.0f, position.y * 32.0f, 0.0f);
@@ -82,8 +83,63 @@ public class TileLayer : MonoBehaviour
 
             var spriteTexture = tileInstance.AddComponent<SpriteTexture>();
             spriteTexture.Animated = instance.Animated;
-            spriteTexture.internalTexture = isTransition ? TransitionSet : TileSet;
-            spriteTexture.Frame = instance.Frame;
+            if (commonTexture.IsTexture)
+            {
+                spriteTexture.internalTexture = commonTexture.Texture;
+                spriteTexture.Frame = instance.Frame;
+                spriteTexture.Animated = commonTexture.Animated;
+                spriteTexture.AnimationFPS = commonTexture.FrameRate;
+            }
+            else
+            {
+                spriteTexture.internalSprite = commonTexture.Sprite;
+            }
+        }
+    }
+
+    void CreateTransitionInstances(IEnumerable<TilePosition> instances, bool isCorner)
+    {
+        foreach (var kvp in instances)
+        {
+            var instance = kvp.Instance;
+            var transitions = isCorner ? Set.CornerTiles : Set.EdgeTiles;
+
+            var commonTexture = transitions[instance.TransitionFrame];
+            if (!commonTexture.HasValue)
+            {
+                continue;
+            }
+
+            var position = kvp.Position;
+            var name = position.x + "_" + position.y;
+            if (isCorner)
+            {
+                name += "_corner_" + instance.Frame;
+            }
+            else
+            {
+                name += "_edge_" + instance.Frame;
+            }
+
+            var tileInstance = new GameObject();
+            tileInstance.transform.parent = transform;
+            tileInstance.transform.localPosition = new Vector3(position.x * 32.0f, position.y * 32.0f, 0.0f);
+            tileInstance.name = name;
+
+            var spriteTexture = tileInstance.AddComponent<SpriteTexture>();
+            spriteTexture.Animated = instance.Animated;
+
+            if (commonTexture.IsTexture)
+            {
+                spriteTexture.internalTexture = commonTexture.Texture;
+                spriteTexture.Frame = instance.Frame;
+                spriteTexture.Animated = commonTexture.Animated;
+                spriteTexture.AnimationFPS = commonTexture.FrameRate;
+            }
+            else
+            {
+                spriteTexture.internalSprite = commonTexture.Sprite;
+            }
         }
     }
 
@@ -97,6 +153,15 @@ public class TileLayer : MonoBehaviour
 
         RemoveTransitionsAt(position);
 
+        Tiles.Add(new TilePosition
+        {
+            Position = position,
+            Instance = new TileInstance
+            {
+                Frame = frame
+            }
+        });
+
         for (var y = -1; y <= 1; y++)
         {
             for (var x = -1; x <= 1; x++)
@@ -107,38 +172,77 @@ public class TileLayer : MonoBehaviour
                 }
 
                 var checkPosition = position.Change(x, y);
-                var topEdge = GetTile(checkPosition);
-                if (topEdge == TilePosition.Empty)
-                {
-                    AddTransition(checkPosition, 1);
-                }
+                CheckTransitions(checkPosition);
             }
         }
 
-        Tiles.Add(new TilePosition
-        {
-            Position = position,
-            Instance = new TileInstance
-            {
-                Frame = frame
-            }
-        });
     }
 
-    public void AddTransition(Vector2Int position, int frame)
+    private void CheckTransitions(Vector2Int position)
     {
-        var findTransition = GetTransition(position, frame);
+        RemoveTransitionsAt(position);
+
+        if (GetTile(position) != TilePosition.Empty)
+        {
+            return;
+        }
+
+        var hasLeftEdge = GetTile(position.Change(-1, 0)) != TilePosition.Empty;
+        var hasRightEdge = GetTile(position.Change(1, 0)) != TilePosition.Empty;
+        var hasTopEdge = GetTile(position.Change(0, 1)) != TilePosition.Empty;
+        var hasBottomEdge = GetTile(position.Change(0, -1)) != TilePosition.Empty;
+
+        var edgeFrame = TileSet.EdgeFlags.None;
+        if (hasLeftEdge) { edgeFrame |= TileSet.EdgeFlags.Left; }
+        if (hasRightEdge) { edgeFrame |= TileSet.EdgeFlags.Right; }
+        if (hasTopEdge) { edgeFrame |= TileSet.EdgeFlags.Top; }
+        if (hasBottomEdge) { edgeFrame |= TileSet.EdgeFlags.Bottom; }
+
+        if (edgeFrame != TileSet.EdgeFlags.None)
+        {
+            AddTransition(position, false, (int)edgeFrame, 0);
+        }
+
+        var cornerFrame = TileSet.CornerFlags.None;
+        if (!hasTopEdge && !hasLeftEdge && GetTile(position.Change(-1, 1)) != TilePosition.Empty)
+        {
+            cornerFrame |= TileSet.CornerFlags.TopLeft;
+        }
+        if (!hasTopEdge && !hasRightEdge && GetTile(position.Change(1, 1)) != TilePosition.Empty)
+        {
+            cornerFrame |= TileSet.CornerFlags.TopRight;
+        }
+        if (!hasBottomEdge && !hasLeftEdge && GetTile(position.Change(-1, -1)) != TilePosition.Empty)
+        {
+            cornerFrame |= TileSet.CornerFlags.BottomLeft;
+        }
+        if (!hasBottomEdge && !hasRightEdge && GetTile(position.Change(1, -1)) != TilePosition.Empty)
+        {
+            cornerFrame |= TileSet.CornerFlags.BottomRight;
+        }
+
+        if (cornerFrame != TileSet.CornerFlags.None)
+        {
+            AddTransition(position, true, (int)cornerFrame, 0);
+        }
+    }
+
+    public void AddTransition(Vector2Int position, bool isCorner, int transitionFrame, int frame)
+    {
+        var findTransition = GetTransition(position, isCorner, transitionFrame);
         if (findTransition != TilePosition.Empty)
         {
             return;
         }
 
-        Transitions.Add(new TilePosition
+        var transitions = isCorner ? Corners : Edges;
+        transitions.Add(new TilePosition
         {
             Position = position,
             Instance = new TileInstance
             {
-                Frame = frame
+                Frame = frame,
+                TransitionFrame = transitionFrame
             }
         });
     }
@@ -155,19 +259,26 @@ public class TileLayer : MonoBehaviour
     }
     private void RemoveTransitionsAt(Vector2Int position)
     {
-        for (var i = Transitions.Count - 1; i >= 0; i--)
+        for (var i = Edges.Count - 1; i >= 0; i--)
         {
-            if (Transitions[i].Position == position)
+            if (Edges[i].Position == position)
             {
-                Transitions.RemoveAt(i);
+                Edges.RemoveAt(i);
+            }
+        }
+        for (var i = Corners.Count - 1; i >= 0; i--)
+        {
+            if (Corners[i].Position == position)
+            {
+                Corners.RemoveAt(i);
             }
         }
     }
-    private TilePosition GetTransition(Vector2Int position, int frame)
+    private TilePosition GetTransition(Vector2Int position, bool isCorner, int transitionFrame)
     {
-        foreach (var tile in Transitions)
+        foreach (var tile in isCorner ? Corners : Edges)
         {
-            if (tile.Position == position && tile.Instance.Frame == frame)
+            if (tile.Position == position && tile.Instance.TransitionFrame == transitionFrame)
             {
                 return tile;
             }

@@ -48,5 +48,6 @@ public struct Vector2Int
 public class TileInstance
 {
     public int Frame;
+    public int TransitionFrame = 0;
     public bool Animated;
 }

@@ -68,6 +68,11 @@ public class TileSetEditor : Editor {
             output.Texture = null;
             output.Sprite = result as Sprite;
         }
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Animated");
+        output.Animated = EditorGUILayout.Toggle(output.Animated);
+        output.FrameRate = EditorGUILayout.FloatField(output.FrameRate);
+        EditorGUILayout.EndHorizontal();
     }
 
     private void ProcessTexture()

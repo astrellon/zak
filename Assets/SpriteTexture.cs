@@ -40,7 +40,6 @@ public class SpriteTexture : MonoBehaviour
         CheckRenderer();
         if (!Animated || sprites == null)
         {
-            spriteRenderer.sprite = sprites[Frame];
             return;
         }
 
