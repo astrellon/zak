@@ -34,6 +34,8 @@ public class TileSet : MonoBehaviour {
         }
     }
 
+    public string Name;
+    public float ZOrdering = 0.0f;
     public CommonTexture CenterTiles;
 
     [System.Flags]

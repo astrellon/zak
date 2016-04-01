@@ -23,6 +23,10 @@ public class TileSetEditor : Editor {
         serializedObject.Update();
 
         var tileset = (TileSet)target;
+
+        tileset.Name = EditorGUILayout.TextField("Name", tileset.Name);
+        tileset.ZOrdering = EditorGUILayout.FloatField("Z-Order", tileset.ZOrdering);
+
         SpriteTextureField(ref tileset.CenterTiles, "Center Tile");
         EditorGUILayout.LabelField("Edge tiles");
         for (var i = 1; i < 16; i++)

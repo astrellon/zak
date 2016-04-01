@@ -37,6 +37,10 @@ public struct Vector2Int
         var vecObj = (Vector2Int)obj;
         return this == vecObj;
     }
+    public override string ToString()
+    {
+        return x + "," + y;
+    }
 
     public Vector2Int Change(int dx, int dy)
     {
@@ -48,6 +52,11 @@ public struct Vector2Int
 public class TileInstance
 {
     public int Frame;
-    public int TransitionFrame = 0;
+    public int TransitionFrame;
     public bool Animated;
+
+    public override string ToString()
+    {
+        return string.Format("{0}@{1} {2}", TransitionFrame, Frame, Animated);
+    }
 }

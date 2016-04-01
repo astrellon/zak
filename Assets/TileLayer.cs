@@ -9,7 +9,11 @@ public struct TilePosition
     public Vector2Int Position;
     public TileInstance Instance;
 
-    public static TilePosition Empty = new TilePosition { Position = Vector2Int.Zero, Instance = null };
+    public static TilePosition Empty = new TilePosition
+    {
+        Position = Vector2Int.Zero,
+        Instance = null
+    };
 
     public static bool operator == (TilePosition lhs, TilePosition rhs)
     {
@@ -29,6 +33,10 @@ public struct TilePosition
 
         var pos = (TilePosition)obj;
         return this == pos;
+    }
+    public override string ToString()
+    {
+        return string.Format("[{0},{1}] ({2})", Position.x, Position.y, Instance != null ? Instance.ToString() : "null");
     }
     public bool IsEmpty
     {
@@ -78,7 +86,7 @@ public class TileLayer : MonoBehaviour
             var name = position.x + "_" + position.y;
             var tileInstance = new GameObject();
             tileInstance.transform.parent = transform;
-            tileInstance.transform.localPosition = new Vector3(position.x * 32.0f, position.y * 32.0f, 0.0f);
+            tileInstance.transform.localPosition = new Vector3(position.x * 32.0f, position.y * 32.0f, position.y);
             tileInstance.name = name;
 
             var spriteTexture = tileInstance.AddComponent<SpriteTexture>();
@@ -123,7 +131,7 @@ public class TileLayer : MonoBehaviour
 
             var tileInstance = new GameObject();
             tileInstance.transform.parent = transform;
-            tileInstance.transform.localPosition = new Vector3(position.x * 32.0f, position.y * 32.0f, 0.0f);
+            tileInstance.transform.localPosition = new Vector3(position.x * 32.0f, position.y * 32.0f, position.y);
             tileInstance.name = name;
 
             var spriteTexture = tileInstance.AddComponent<SpriteTexture>();
@@ -153,13 +161,9 @@ public class TileLayer : MonoBehaviour
 
         RemoveTransitionsAt(position);
 
-        Tiles.Add(new TilePosition
-        {
+        Tiles.Add(new TilePosition {
             Position = position,
-            Instance = new TileInstance
-            {
-                Frame = frame
-            }
+            Instance = new TileInstance{Frame = frame}
         });
 
         for (var y = -1; y <= 1; y++)
@@ -239,11 +243,7 @@ public class TileLayer : MonoBehaviour
         transitions.Add(new TilePosition
         {
             Position = position,
-            Instance = new TileInstance
-            {
-                Frame = frame,
-                TransitionFrame = transitionFrame
-            }
+            Instance = new TileInstance { Frame = frame, TransitionFrame = transitionFrame }
         });
     }
     private TilePosition GetTile(Vector2Int position)
