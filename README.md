@@ -10,3 +10,5 @@ An attempt at creating a relatively simple and straight forward tilemap implemen
 - All tiles, transitions and corner tiles are individual game objects so it's too heavy for large tile maps.
 
 ![](screenshot.png)
+
+[Video example](https://www.youtube.com/watch?v=Ca1R_lOVwSc)
